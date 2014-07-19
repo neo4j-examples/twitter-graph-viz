@@ -1,6 +1,6 @@
 import web
-import neo
-from neo import count_relationships
+#import neo
+#from neo import count_relationships
 
 render = web.template.render("templates/")
 urls = (
@@ -14,7 +14,7 @@ class index:
 
 class page:
     def GET(self):
-        name = count_relationships()
+        name = "Bob" # count_relationships()
         return render.page(name)
 
 if __name__ == "__main__":
