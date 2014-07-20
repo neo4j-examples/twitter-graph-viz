@@ -7,7 +7,7 @@ print(url)
 graph = neo4j.GraphDatabaseService()
 session = cypher.Session()
 
-def count_relationships():
+def load_graph():
     query = "MATCH (n)-[r]->(m) RETURN { from: {id:id(n),label: head(labels(n)), data: n}, rel: type(r), to: {id: id(m), label: head(labels(m)), data: m}} as tuple limit 10"
     res = session.execute(query)
     return res

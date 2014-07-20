@@ -1,11 +1,24 @@
 <html>
 <head>
-	<meta http-equiv="Content-type" content="text/html; charset=utf-8">
-	<title>Test Page</title>
-	
+    <meta name="author" content="Michael Hunger">
+    <meta name="description" content="Neo4j Twitter Graph Visualization">
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+    <title>Neo4j Twitter Graph Visualization</title>
+    <link rel="stylesheet" media="screen" href="css/neoviva.css" type="text/css">
+    <script type="text/javascript" charset="utf-8" src="js/jquery.min.js"></script>
+    <script type="text/javascript" charset="utf-8" src="js/vivagraph.js"></script>
+    <script type="text/javascript" charset="utf-8" src="js/neoviva.js"></script>
 </head>
-
-<body id="" onload="">
-	
+<body style="background-color:black;" onload="onLoad()">
+    <div id="name">
+        <input type="text" name="search" value="" id="search">
+    </div>
+    <div id="hoveredName">
+    </div>
+    <div id="content">
+        <div id="graph1">
+            
+        </div>
+    </div>
 </body>
 </html>
