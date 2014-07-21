@@ -28,7 +28,7 @@ class twitter_img:
 
 class text_img:
     def GET(self,name):
-        img = requests.get('http://ansrv.com/png?s='+name+'&c=74d0f4&b=231d40&size=5')
+        img = requests.get('http://ansrv.com/png?s='+name+'&c=74d0f4&b=231d40&size=11')
         return img.content
 
 

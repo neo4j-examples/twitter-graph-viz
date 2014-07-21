@@ -4692,6 +4692,7 @@ Viva.Graph.View.svgGraphics = function () {
             }
             nodeUI.position = pos;
             nodeUI.node = node;
+
             allNodes[node.id] = nodeUI;
 
             svgContainer.appendChild(nodeUI);
@@ -5398,9 +5399,72 @@ Viva.Graph.View.webglLinkProgram = function () {
 Viva.Graph.View.Texture = function (size) {
     this.canvas = window.document.createElement("canvas");
     this.ctx = this.canvas.getContext("2d");
-    this.isDirty = false;
+//     this.ctx.fillStyle = "#FFFFFF";  // This determines the text colour, it can take a hex value or rgba value (e.g. rgba(255,0,0,0.5))
+// this.ctx.textAlign = "center";   // This determines the alignment of text, e.g. left, center, right
+// this.ctx.textBaseline = "middle";    // This determines the baseline of the text, e.g. top, middle, bottom
+// this.ctx.font = "12px monospace";    // This determines the size of the text and the font family used
+// this.ctx.fillText("HTML5 Rocks!", this.canvas.width/2, this.canvas.height/2);
+//     this.isDirty = true;
+    this.isDirty = true;
+    //console.log(size);
     this.canvas.width = this.canvas.height = size;
 };
+
+function getPowerOfTwo(value, pow) {
+    var pow = pow || 1;
+    while(pow<value) {
+        pow *= 2;
+    }
+    return pow;
+}
+
+function measureText(ctx, textToMeasure) {
+    return ctx.measureText(textToMeasure).width;
+}
+
+function createMultilineText(ctx, textToWrite, maxWidth, text) {
+    textToWrite = textToWrite.replace("\n"," ");
+    var currentText = textToWrite;
+    var futureText;
+    var subWidth = 0;
+    var maxLineWidth = 0;
+    
+    var wordArray = textToWrite.split(" ");
+    var wordsInCurrent, wordArrayLength;
+    wordsInCurrent = wordArrayLength = wordArray.length;
+    
+    // Reduce currentText until it is less than maxWidth or is a single word
+    // futureText var keeps track of text not yet written to a text line
+    while (measureText(ctx, currentText) > maxWidth && wordsInCurrent > 1) {
+        wordsInCurrent--;
+        var linebreak = false;
+        
+        currentText = futureText = "";
+        for(var i = 0; i < wordArrayLength; i++) {
+            if (i < wordsInCurrent) {
+                currentText += wordArray[i];
+                if (i+1 < wordsInCurrent) { currentText += " "; }
+            }
+            else {
+                futureText += wordArray[i];
+                if(i+1 < wordArrayLength) { futureText += " "; }
+            }
+        }
+    }
+    text.push(currentText); // Write this line of text to the array
+    maxLineWidth = measureText(ctx, currentText);
+    
+    // If there is any text left to be written call the function again
+    if(futureText) {
+        subWidth = createMultilineText(ctx, futureText, maxWidth, text);
+        if (subWidth > maxLineWidth) { 
+            maxLineWidth = subWidth;
+        }
+    }
+    
+    // Return the maximum line width
+    return maxLineWidth;
+}
 
 /**
  * My naive implementation of textures atlas. It allows clients to load
@@ -5411,7 +5475,7 @@ Viva.Graph.View.Texture = function (size) {
  *          parameter a new canvas will be created.
  */
 Viva.Graph.View.webglAtlas = function (tilesPerTexture) {
-    var tilesPerRow = Math.sqrt(tilesPerTexture || 1024) << 0,
+    var tilesPerRow = Math.sqrt(tilesPerTexture || 4096) << 0,
         tileSize = tilesPerRow,
         lastLoadedIdx = 1,
         loadedImages = {},
@@ -5467,7 +5531,7 @@ Viva.Graph.View.webglAtlas = function (tilesPerTexture) {
             textures[to.textureNumber].isDirty = true;
         },
 
-        drawAt = function (tileNumber, img, callback) {
+        drawAt = function (tileNumber, img, callback, name) {
             var tilePosition = getTileCoordinates(tileNumber),
                 coordinates = { offset : tileNumber };
 
@@ -5476,7 +5540,44 @@ Viva.Graph.View.webglAtlas = function (tilesPerTexture) {
             }
             var currentTexture = textures[tilePosition.textureNumber];
 
-            currentTexture.ctx.drawImage(img, tilePosition.col * tileSize, tilePosition.row * tileSize, tileSize, tileSize);
+            if(!name)
+            {
+                currentTexture.ctx.drawImage(img, tilePosition.col * tileSize, tilePosition.row * tileSize, tileSize, tileSize);
+            }
+            else
+            {
+                currentTexture.ctx.fillStyle = "#FFFFFF";  // This determines the text colour, it can take a hex value or rgba value (e.g. rgba(255,0,0,0.5))
+
+                currentTexture.ctx.textAlign = "center";   // This determines the alignment of text, e.g. left, center, right
+                currentTexture.ctx.textBaseline = "middle";    // This determines the baseline of the text, e.g. top, middle, bottom
+                //createMultilineText()
+                var text = [];
+                var textX, textY;
+                var textToWrite = name; 
+                var textHeight = 12;
+                var maxWidth = 32;
+
+                // Omitted: Set up the canvas and get the context
+
+                currentTexture.ctx.font = textHeight+"px arial";
+                maxWidth = createMultilineText(currentTexture.ctx, textToWrite, maxWidth, text);
+                canvasX = getPowerOfTwo(maxWidth);
+                canvasY = getPowerOfTwo(textHeight*(text.length+1));
+
+                // Omitted: Set canvas width / height 
+                // Omitted: Set text properties
+
+                textX = canvasX/2;
+                var offset = (canvasY - textHeight*(text.length+1)) * .5;
+
+                for(var i = 0; i < text.length; i++) {
+                    textY = (i+1)*textHeight + offset;
+                    currentTexture.ctx.fillText(text[i], ((tilePosition.col * tileSize) + (tileSize / 2)),  textY + ((tilePosition.row * tileSize)), tileSize, tileSize);
+                }
+            }
+            
+
+                //currentTexture.ctx.fillText(name, (tilePosition.col * tileSize) + tileSize / 2, (tilePosition.row * tileSize)  + tileSize / 2, tileSize, tileSize);
             trackedUrls[tileNumber] = img.src;
 
             loadedImages[img.src] = coordinates;
@@ -5558,7 +5659,7 @@ Viva.Graph.View.webglAtlas = function (tilesPerTexture) {
          * Asynchronously Loads the image to the atlas. Cross-domain security
          * limitation applies.
          */
-        load : function (imgUrl, callback) {
+        load : function (imgUrl, callback, name) {
             if (loadedImages.hasOwnProperty(imgUrl)) {
                 callback(loadedImages[imgUrl]);
             } else {
@@ -5569,7 +5670,7 @@ Viva.Graph.View.webglAtlas = function (tilesPerTexture) {
                 img.crossOrigin = "anonymous";
                 img.onload = function () {
                     markDirty();
-                    drawAt(imgId, img, callback);
+                    drawAt(imgId, img, callback, name);
                 };
 
                 img.src = imgUrl;
@@ -5642,7 +5743,7 @@ Viva.Graph.View.webglImageNodeProgram = function () {
             "}"
         ].join("\n"),
 
-        tilesPerTexture = 1024, // TODO: Get based on max texture size
+        tilesPerTexture = 4096, // TODO: Get based on max texture size
         atlas;
 
     var program,
@@ -5651,7 +5752,7 @@ Viva.Graph.View.webglImageNodeProgram = function () {
         utils,
         locations,
         nodesCount = 0,
-        nodes = new Float32Array(64),
+        nodes = new Float32Array(128),
         width,
         height,
         transform,
@@ -5665,9 +5766,14 @@ Viva.Graph.View.webglImageNodeProgram = function () {
             var nativeObject = gl.createTexture();
             gl.activeTexture(gl["TEXTURE" + idx]);
             gl.bindTexture(gl.TEXTURE_2D, nativeObject);
+            
+            // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+            // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
             gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture.canvas);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
 
             gl.generateMipmap(gl.TEXTURE_2D);
             gl.uniform1i(locations["sampler" + idx], idx);
@@ -5753,7 +5859,7 @@ Viva.Graph.View.webglImageNodeProgram = function () {
                 // Image is not yet loaded into the atlas. Reload it:
                 atlas.load(ui.src, function (coordinates) {
                     ui._offset = coordinates.offset;
-                });
+                }, ui.node.data["name"]);
             }
         },
 
@@ -5800,7 +5906,7 @@ Viva.Graph.View.webglImageNodeProgram = function () {
 
             ensureAtlasTextureUpdated();
 
-            gl.drawArrays(gl.TRIANGLES, 0, nodesCount * 6);
+            gl.drawArrays(gl.TRIANGLES, 0, nodesCount * 1);
         }
     };
 };/**
@@ -5824,8 +5930,8 @@ Viva.Graph.View = Viva.Graph.View || {};
 Viva.Graph.View.webglGraphics = function (options) {
     options = Viva.lazyExtend(options, {
         enableBlending : true,
-        preserveDrawingBuffer : false,
-        clearColor: false,
+        preserveDrawingBuffer : true,
+        clearColor: true,
         clearColorValue : {
             r : 1,
             g : 1,
@@ -5863,7 +5969,7 @@ Viva.Graph.View.webglGraphics = function (options) {
         },
 
         linkUIBuilder = function (link) {
-            return Viva.Graph.View.webglLine(0xb3b3b3ff);
+            return Viva.Graph.View.webglLine(0x333333);
         },
 /*jshint unused: true */
         updateTransformUniform = function () {
@@ -6078,8 +6184,8 @@ Viva.Graph.View.webglGraphics = function (options) {
             if (gl) {
                 updateSize();
                 // TODO: what is this?
-                // gl.useProgram(linksProgram);
-                // gl.uniform2f(linksProgram.screenSize, width, height);
+                 gl.useProgram(linksProgram);
+                 gl.uniform2f(linksProgram.screenSize, width, height);
                 updateTransformUniform();
             }
             return this;

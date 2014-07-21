@@ -20,27 +20,29 @@ function addNeo(graph, data) {
     for (var i=0;i<data.length;i++) {
 		var row = data[i];
 	    var tuple = row.row[0];
-        addNode(tuple.from.id,tuple.from);
-        addNode(tuple.to.id,tuple.to);
+        addNode(tuple.from.id,tuple.from.data);
+        addNode(tuple.to.id,tuple.to.data);
     }
     for (var i=0;i<data.length;i++) {
 		var row = data[i];
 	    var tuple = row.row[0];
-	    var found=false;
+        var found=false;
         graph.forEachLinkedNode(tuple.from.id, function (node, link) {
             if (node.id == tuple.to.id) found=true;
         });
         if (!found) graph.addLink(tuple.from.id, tuple.to.id);
     }
 }
+
 function loadData(graph,id) {
-	var query = "MATCH (n)-[r]->(m) RETURN { from: {id:id(n),label: head(labels(n)), data: n}, rel: type(r), to: {id: id(m), label: head(labels(m)), data: m}} as tuple limit 1000"
-    $.ajax("http://localhost:7474/db/data/transaction/commit", {
+	var query = "MATCH (n)-[r]->(m) WHERE NOT n.phrase = '{0} of {0}' RETURN { from: {id:id(n),label: head(labels(n)), data: n}, rel: type(r), to: {id: id(m), label: head(labels(m)), data: m}} as tuple";
+    $.ajax("http://localhost:7478/db/data/transaction/commit", {
         type:"POST",
         data: JSON.stringify({statements:[{statement:query}]}),
         dataType:"json",
         contentType: "application/json",
         success:function (res) {
+console.log(res);
             addNeo(graph, res.results[0].data);
         }
     })
@@ -50,10 +52,10 @@ function onLoad() {
     var graph = Viva.Graph.graph();
 
     var layout = Viva.Graph.Layout.forceDirected(graph, {
-        springLength:100,
-        springCoeff:0.0001,
-        dragCoeff:0.02,
-        gravity:-1
+        springLength : 100,
+                   springCoeff : 0.00001,
+                   dragCoeff : 0.02,
+                   gravity : -.5
     });
 
     var graphics = Viva.Graph.View.webglGraphics({ clearColor: true, clearColorValue: {r:0,g:0,b:0,a:1}});
@@ -64,16 +66,13 @@ function onLoad() {
     graphics.setNodeProgram(new Viva.Graph.View.webglImageNodeProgram());
     graphics
         .node(function (node) {
-			var d = node.data;
-			console.log(d)
-			var img;
-			if (img = d && d.data && d.data["profile_image_url"]) {
-				img = img.replace("http://pbs.twimg.com/profile_images/","/twitter/");
-				return Viva.Graph.View.webglImage(12, img);
-			}
-			if (d && d.label && d.label == "Tag" && d.data) {
-				return Viva.Graph.View.webglImage(12, "/text/"+d.data['name']);
-			}
+
+            if(node.data["name"])
+            {
+			var img = "/text/" + node.data["name"];
+            return Viva.Graph.View.webglImage(32, "/static/images/blank.png");
+            }
+
             return Viva.Graph.View.webglImage(1, "/static/images/blank.png");
         })
         .link(function (link) {
@@ -128,6 +127,7 @@ function onLoad() {
         console.log("click", node);
         if (!node || !node.position) return;
         showBox(node);
+        
         graphics.graphCenterChanged(node.position.x,node.position.y);
         renderer.rerender();
         loadData(graph,node.id);
