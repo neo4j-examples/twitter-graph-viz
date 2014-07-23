@@ -18,14 +18,12 @@ function addNeo(graph, data) {
         return node;
     }
     for (var i=0;i<data.length;i++) {
-		var row = data[i];
-	    var tuple = row.row[0];
+		var tuple = data[i];
         addNode(tuple.from.id,tuple.from);
         addNode(tuple.to.id,tuple.to);
     }
     for (var i=0;i<data.length;i++) {
-		var row = data[i];
-	    var tuple = row.row[0];
+		var tuple = data[i];
 	    var found=false;
         graph.forEachLinkedNode(tuple.from.id, function (node, link) {
             if (node.id == tuple.to.id) found=true;
@@ -33,17 +31,9 @@ function addNeo(graph, data) {
         if (!found) graph.addLink(tuple.from.id, tuple.to.id);
     }
 }
+
 function loadData(graph,id) {
-	var query = "MATCH (n)-[r]->(m) RETURN { from: {id:id(n),label: head(labels(n)), data: n}, rel: type(r), to: {id: id(m), label: head(labels(m)), data: m}} as tuple limit 1000"
-    $.ajax("http://localhost:7474/db/data/transaction/commit", {
-        type:"POST",
-        data: JSON.stringify({statements:[{statement:query}]}),
-        dataType:"json",
-        contentType: "application/json",
-        success:function (res) {
-            addNeo(graph, res.results[0].data);
-        }
-    })
+   $.get("/graph", function(data, status,err) { addNeo(graph, data); }, "json");
 }
 
 function onLoad() {

@@ -1,25 +1,17 @@
 import web
-import neo
-from neo import load_graph
+from load_graph import load_graph
 import requests
 
-render = web.template.render("templates/")
-# http://pbs.twimg.com/profile_images/3324391541/e661bf654d79b2b0cba94ebb9df0cbfe_normal.jpeg
 urls = (
     '/', 'index',
-    '/page', 'page',
     '/twitter/(.*)','twitter_img',
-    '/text/(.*)','text_img'
+    '/text/(.*)','text_img',
+    '/graph','graph'
 )
 
 class index:
     def GET(self):
-        return "Hello, world!"
-
-class page:
-    def GET(self):
-        name = py2neo.neo4j.CypherResults(load_graph())
-        return render.page(name)
+         raise web.seeother('/static/index.html')
 
 class twitter_img:
     def GET(self,name):
@@ -30,6 +22,10 @@ class text_img:
     def GET(self,name):
         img = requests.get('http://ansrv.com/png?s='+name+'&c=74d0f4&b=231d40&size=5')
         return img.content
+
+class graph:
+    def GET(self):
+        return load_graph()
 
 
 if __name__ == "__main__":
