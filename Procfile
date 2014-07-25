@@ -1,2 +1,2 @@
 web: python app.py $PORT
-worker: python import.py
+#worker: python import.py
