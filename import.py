@@ -19,7 +19,8 @@ neo4j.CypherQuery(graph, "CREATE CONSTRAINT ON (s:Source) ASSERT s.name IS UNIQU
 TWITTER_BEARER = os.environ["TWITTER_BEARER"]
 
 # URL parameters.
-q = "oscon OR neo4j"
+q = os.environ.get("TWITTER_SEARCH","oscon OR neo4j")
+
 count = 100
 result_type = "recent"
 lang = "en"
