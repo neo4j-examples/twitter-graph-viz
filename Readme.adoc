@@ -11,9 +11,11 @@ image::http://dev.assets.neo4j.com.s3.amazonaws.com/wp-content/uploads/2014/07/i
 
 === Import
 
+Start your neo4j server or provision a hosted server, e.g. at graphenedb.com or addons.heroku.com/graphenedb
+
 ----
 export NEO4J_URL=http://localhost:7474/db/data
-export BEARER=TWITTER_BEARER_TOKEN
+export TWITTER_BEARER=TWITTER_BEARER_TOKEN
 
 python import.py
 ----
