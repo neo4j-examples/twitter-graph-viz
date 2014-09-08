@@ -4,7 +4,7 @@ import time
 from py2neo import neo4j
 
 # Connect to graph and add constraints.
-url = os.environ.get('NEO4J_URL',"http://localhost:7474/db/data")
+url = os.environ.get('NEO4J_URL',"http://localhost:7474/db/data/")
 # url = "http://localhost:7474/db/data/"
 graph = neo4j.GraphDatabaseService(url)
 
