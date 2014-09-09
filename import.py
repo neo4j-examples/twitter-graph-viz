@@ -4,13 +4,13 @@ import time
 from py2neo import neo4j
 
 # Connect to graph and add constraints.
-url = os.environ.get('NEO4J_URL',"http://localhost:7474/db/data")
+url = os.environ.get('NEO4J_URL',"http://localhost:7474/db/data/")
 # url = "http://localhost:7474/db/data/"
 graph = neo4j.GraphDatabaseService(url)
 
 # Add uniqueness constraints.
 neo4j.CypherQuery(graph, "CREATE CONSTRAINT ON (t:Tweet) ASSERT t.id IS UNIQUE;").run()
-neo4j.CypherQuery(graph, "CREATE CONSTRAINT ON (u:User) ASSERT u.username IS UNIQUE;").run()
+neo4j.CypherQuery(graph, "CREATE CONSTRAINT ON (u:User) ASSERT u.screen_name IS UNIQUE;").run()
 neo4j.CypherQuery(graph, "CREATE CONSTRAINT ON (h:Hashtag) ASSERT h.name IS UNIQUE;").run()
 neo4j.CypherQuery(graph, "CREATE CONSTRAINT ON (l:Link) ASSERT l.url IS UNIQUE;").run()
 neo4j.CypherQuery(graph, "CREATE CONSTRAINT ON (s:Source) ASSERT s.name IS UNIQUE;").run()
