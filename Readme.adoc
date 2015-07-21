@@ -24,7 +24,11 @@ You can create a https://dev.twitter.com/docs/auth/application-only-auth[bearer 
 
 ----
 curl -XPOST -u customer_id:customer_secret 'https://api.twitter.com/oauth2/token?grant_type=client_credentials'
-=> {"token_type":"bearer","access_token":"....bearer token...."}
+----
+
+This will yield:
+----
+{"token_type":"bearer","access_token":"....bearer token...."}
 ----
 
 === Webapp
