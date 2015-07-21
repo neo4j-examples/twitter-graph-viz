@@ -3,7 +3,8 @@
 Small Python sample app to load tweets for a certain twitter search continuously into a Neo4j instance
 and a webapp to render them with vivagraph.js (webgl)
 
-You can read the http://neo4j.com/blog/oscon-twitter-graph/[blog post for details], or see the http://oscon-twitter-graph.herokuapp.com[running application on Heroku].
+You can read the http://neo4j.com/blog/oscon-twitter-graph/[blog post for details].
+
 There is also a http://www.neo4j.org/graphgist?12b6cd13f1f1120f6099[GraphGist] explaining the model and some use-case queries in detail.
 
 image::http://dev.assets.neo4j.com.s3.amazonaws.com/wp-content/uploads/2014/07/image04.png?_ga=1.207666834.149316633.1397859613[width=400]
