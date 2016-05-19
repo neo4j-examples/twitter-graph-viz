@@ -1,6 +1,7 @@
 import requests
 import os
 import time
+import urllib
 from py2neo import neo4j
 
 # Connect to graph and add constraints.
@@ -9,17 +10,17 @@ url = os.environ.get('NEO4J_URL',"http://localhost:7474/db/data/")
 graph = neo4j.Graph(url)
 
 # Add uniqueness constraints.
-graph.cypher.execute("CREATE CONSTRAINT ON (t:Tweet) ASSERT t.id IS UNIQUE;")
-graph.cypher.execute("CREATE CONSTRAINT ON (u:User) ASSERT u.screen_name IS UNIQUE;")
-graph.cypher.execute("CREATE CONSTRAINT ON (h:Hashtag) ASSERT h.name IS UNIQUE;")
-graph.cypher.execute("CREATE CONSTRAINT ON (l:Link) ASSERT l.url IS UNIQUE;")
-graph.cypher.execute("CREATE CONSTRAINT ON (s:Source) ASSERT s.name IS UNIQUE;")
+graph.cypher.execute( "CREATE CONSTRAINT ON (t:Tweet) ASSERT t.id IS UNIQUE;")
+graph.cypher.execute( "CREATE CONSTRAINT ON (u:User) ASSERT u.screen_name IS UNIQUE;")
+graph.cypher.execute( "CREATE CONSTRAINT ON (h:Hashtag) ASSERT h.name IS UNIQUE;")
+graph.cypher.execute( "CREATE CONSTRAINT ON (l:Link) ASSERT l.url IS UNIQUE;")
+graph.cypher.execute( "CREATE CONSTRAINT ON (s:Source) ASSERT s.name IS UNIQUE;")
 
 # Get Twitter bearer to pass to header.
 TWITTER_BEARER = os.environ["TWITTER_BEARER"]
 
 # URL parameters.
-q = os.environ.get("TWITTER_SEARCH","oscon OR neo4j")
+q = urllib.quote_plus(os.environ.get("TWITTER_SEARCH","oscon OR neo4j OR #oscon OR @neo4j"))
 
 count = 100
 result_type = "recent"
@@ -28,6 +29,7 @@ since_id = -1
 
 while True:
     try:
+        print(q)
         # Build URL.
         url = "https://api.twitter.com/1.1/search/tweets.json?q=%s&count=%s&result_type=%s&lang=%s&since_id=%s" % (q, count, result_type, lang, since_id)
         # Send GET request.
@@ -104,7 +106,7 @@ while True:
         """
 
         # Send Cypher query.
-	graph.cypher.execute(query, tweets=tweets)
+        graph.cypher.execute(query,tweets=tweets)
         print("Tweets added to graph!\n")
         time.sleep(65)
 
