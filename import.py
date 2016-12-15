@@ -2,19 +2,21 @@ import requests
 import os
 import time
 import urllib
-from py2neo import neo4j
+from neo4j.v1 import GraphDatabase, basic_auth
 
-# Connect to graph and add constraints.
-url = os.environ.get('NEO4J_URL',"http://localhost:7474/db/data/")
-# url = "http://localhost:7474/db/data/"
-graph = neo4j.Graph(url)
+neo4jUrl = os.environ.get('NEO4J_URL',"bolt://localhost")
+neo4jUser = os.environ.get('NEO4J_USER',"neo4j")
+neo4jPass = os.environ.get('NEO4J_PASSWORD',"test")
+driver = GraphDatabase.driver(neo4jUrl, auth=basic_auth(neo4jUser, neo4jPass))
+
+session = driver.session()
 
 # Add uniqueness constraints.
-graph.cypher.execute( "CREATE CONSTRAINT ON (t:Tweet) ASSERT t.id IS UNIQUE;")
-graph.cypher.execute( "CREATE CONSTRAINT ON (u:User) ASSERT u.screen_name IS UNIQUE;")
-graph.cypher.execute( "CREATE CONSTRAINT ON (h:Hashtag) ASSERT h.name IS UNIQUE;")
-graph.cypher.execute( "CREATE CONSTRAINT ON (l:Link) ASSERT l.url IS UNIQUE;")
-graph.cypher.execute( "CREATE CONSTRAINT ON (s:Source) ASSERT s.name IS UNIQUE;")
+session.run( "CREATE CONSTRAINT ON (t:Tweet) ASSERT t.id IS UNIQUE;")
+session.run( "CREATE CONSTRAINT ON (u:User) ASSERT u.screen_name IS UNIQUE;")
+session.run( "CREATE CONSTRAINT ON (h:Hashtag) ASSERT h.name IS UNIQUE;")
+session.run( "CREATE CONSTRAINT ON (l:Link) ASSERT l.url IS UNIQUE;")
+session.run( "CREATE CONSTRAINT ON (s:Source) ASSERT s.name IS UNIQUE;")
 
 # Get Twitter bearer to pass to header.
 TWITTER_BEARER = os.environ["TWITTER_BEARER"]
@@ -106,7 +108,7 @@ while True:
         """
 
         # Send Cypher query.
-        graph.cypher.execute(query,tweets=tweets)
+        session.run(query,{'tweets':tweets})
         print("Tweets added to graph!\n")
         time.sleep(65)
 

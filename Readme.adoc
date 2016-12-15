@@ -8,6 +8,10 @@ You can read the http://neo4j.com/blog/oscon-twitter-graph/[blog post for detail
 There is also a http://www.neo4j.org/graphgist?12b6cd13f1f1120f6099[GraphGist] explaining the model and some use-case queries in detail.
 
 image::http://dev.assets.neo4j.com.s3.amazonaws.com/wp-content/uploads/2014/07/image04.png?_ga=1.207666834.149316633.1397859613[width=400]
+
+The application uses the official https://github.com/neo4j/neo4j-python-driver[Neo4j-Python-Driver] which supports the binary *bolt* protocol.
+So it only works with Neo4j 3.x and later.
+
 == Usage
 
 === Import

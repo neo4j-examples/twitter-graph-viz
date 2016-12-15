@@ -1,4 +1,4 @@
-py2neo==2.0
+neo4j-driver==1.0.2
 requests==2.3.0
 web.py==0.37
 wsgiref==0.1.2
